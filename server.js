@@ -5,7 +5,8 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-
+import { connectDB } from "./config/mongoose.js";
+import Chat from "./model/chat_schema.js"
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -39,11 +40,16 @@ io.on("connection", (socket) => {
   socket.on("join", (data) => {
     socket.username = data;
   });
-  socket.on("new_message", (message) => {
+  socket.on("new_message", async (message) => {
     let userMessage = {
       username: socket.username,
       message: message,
     };
+    const chat = new Chat({
+      username: socket.username,
+      message: message,
+    });
+    await chat.save();
     //broadcast this message to all the clients.
     socket.broadcast.emit("broadcast_message", userMessage);
   });
@@ -55,4 +61,6 @@ io.on("connection", (socket) => {
 
 server.listen(3000, () => {
   console.log("App is listening on 3000");
+  connectDB();
+
 });
