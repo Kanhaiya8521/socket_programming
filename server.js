@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import { Server } from "socket.io";
 import http from "http";
@@ -19,7 +21,6 @@ const io = new Server(server, {
     methodS: ["GET", "POST"],
   },
 });
-
 // Use cors middleware
 app.use(cors());
 
@@ -39,6 +40,14 @@ io.on("connection", (socket) => {
 
   socket.on("join", (data) => {
     socket.username = data;
+
+    //send old message to the clients
+    Chat.find().sort({timestamp:1}).limit(50)
+    .then(message => {
+      socket.emit('load_messages', message);
+    }).catch(err => {
+      console.log(err);
+    })
   });
   socket.on("new_message", async (message) => {
     let userMessage = {

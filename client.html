@@ -14,13 +14,11 @@
         <button id="send-message">Send</button>
     </div>
 
-
-
-    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script src="https://kanha-chat-box.onrender.com/socket.io/socket.io.js"></script>
     <script>
-        // https://kanha-chat-box.onrender.com
-        // http://localhost:3000
-        const socket = io.connect('http://localhost:3000');
+        // https://kanha-chat-box.onrender.com  for at time of hosting
+        // http://localhost:3000  for at time of running on localhost
+        const socket = io.connect('https://kanha-chat-box.onrender.com');
         const username = prompt("Enter your name");
         // emit the username to the server
         socket.emit("join", username);
@@ -35,6 +33,7 @@
             // read the message from input and send to server
             const message = messageInput.value;
             if(message) {
+                //emit for sending data to server in server.js file emit means send data from server to clients
                 socket.emit('new_message', message);
 
                 // add message to list
@@ -45,7 +44,15 @@
                 messageInput.value = "";
             }
         })
-
+        socket.on('load_messages', (messages) => {
+            messages.forEach(message => {
+                console.log(message);
+                const messageElement = document.createElement("div");
+                messageElement.innerText = new Date(message.createdAt).toDateString() + "-" + message.username + ": " + message.message;
+                messageList.appendChild(messageElement);
+            })
+        })
+        // Listen for broadcast message, and add to the list
         socket.on('broadcast_message', (userMessage) => {
             const messageElement = document.createElement("div");
             messageElement.innerText = userMessage.username + ": " + userMessage.message;
